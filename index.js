@@ -13,6 +13,9 @@ var dataAAVSO = []
 var dataToVCSSZ = []
 var dataToAAVSO = []
 
+var obscode_vcssz = "";
+var ovscode_aavso = "";
+
 function processVCSSZ() {
     var reader = new FileReader();
     const [file_vcssz] = in_file_vcssz.files 
@@ -20,6 +23,10 @@ function processVCSSZ() {
         dataVCSSZ = []
         let dataLines = reader.result.split("\n")
         dataLines.forEach(l => {
+            if (l.indexOf("#OBSCODE=") > -1) {
+                obscode_vcssz = l.split("=")[1]
+                document.getElementById("obscode_vcssz").innerText = obscode_vcssz
+            }
             if (l.indexOf("#") == -1 && l.length > 30) {
                 let cols = l.split(",")
                 dataVCSSZ.push({
@@ -36,12 +43,11 @@ function processVCSSZ() {
                 })
             }
         })
-        console.log(dataVCSSZ)
-        
-        content_vcssz.innerHTML = "Loaded " + dataVCSSZ.length + " observations."
+        //console.log(dataVCSSZ)
+        content_vcssz.innerHTML = dataVCSSZ.length + " észlelés betöltve"
 
         if(dataAAVSO.length > 0 && dataVCSSZ.length > 0) {
-            btn_compare.removeAttribute("disabled")
+            btn_compare.classList.remove("d-none")
         }
     }, false);
 
@@ -63,11 +69,12 @@ function processAAVSO() {
     reader.addEventListener("load", () => {
         dataAAVSO = []
         let dataLines = reader.result.split("\n")
+        obscode_aavso = in_file_aavso.value.substring(in_file_aavso.value.lastIndexOf("_") + 1).replace(".txt", "")
+        document.getElementById("obscode_aavso").innerText = obscode_aavso
         dataLines.forEach(l => {
             if (l.indexOf("Vis") == 0) {
                 let cols = l.split(" ## ")
                 let star = cols[1]
-                
                 if(regexp.test(cols[1])) {
                     let star_orig = cols[1].match(regexp)[0]
                     let new_star = "V" + pad(star_orig.replace("V","") ,4)
@@ -88,11 +95,11 @@ function processAAVSO() {
                 })
             }
         })
-        console.log(dataAAVSO)
-        content_aavso.innerHTML = "Loaded " + dataAAVSO.length + " observations."
+        //console.log(dataAAVSO)
+        content_aavso.innerHTML = dataAAVSO.length + " észlelés betöltve"
 
         if(dataAAVSO.length > 0 && dataVCSSZ.length > 0) {
-            btn_compare.removeAttribute("disabled")
+            btn_compare.classList.remove("d-none")
         }
     }, false);
 
@@ -130,12 +137,12 @@ function compareData() {
     dataToAAVSO = dataVCSSZ.filter(r => r.INAAVSO == false)
     dataToVCSSZ = dataAAVSO.filter(r => r.INVCSSZ == false)
 
-    console.log("in VCSSZ not in AAVSO", dataToAAVSO)
-    console.log("in AAVSO not in VCSSZ", dataToVCSSZ)
+    //console.log("in VCSSZ not in AAVSO", dataToAAVSO)
+    //console.log("in AAVSO not in VCSSZ", dataToVCSSZ)
 
-    var table_vcssz = new Tabulator("#observations_vcssz", {
+    const table_vcssz = new Tabulator("#observations_vcssz", {
         data: dataVCSSZ, //assign data to table
-        height:"311px",
+        height:"338px",
         layout:"fitColumns",
         columns: [
             {title:"#", field:"STAR", formatter:"rownum", width: 40},
@@ -146,7 +153,7 @@ function compareData() {
             {title:"ÖH2", field:"COMP2", headerFilter:"input", width: 70},
             {title:"Térkép kód", field:"MAP", headerFilter:"input"},
             {title:"Megj. kód", field:"COMMENTCODE", headerFilter:"input"},
-            {title:"AAVSO-ban?", field:"INAAVSO", headerFilter:"input", formatter:"tickCross"},
+            {title:"AAVSO?", field:"INAAVSO", headerFilter:"input", formatter:"tickCross"},
         ]
     });
 
@@ -159,9 +166,9 @@ function compareData() {
         el.innerHTML = rows.length;
     });
 
-    var table_aavso = new Tabulator("#observations_aavso", {
+    const table_aavso = new Tabulator("#observations_aavso", {
         data: dataAAVSO, //assign data to table
-        height:"311px",
+        height:"338px",
         layout:"fitColumns",
         columns: [
             {title:"#", field:"STAR", formatter:"rownum", width: 40},
@@ -172,7 +179,7 @@ function compareData() {
             {title:"ÖH2", field:"COMP2", headerFilter:"input", width: 70},
             {title:"Térkép kód", field:"MAP", headerFilter:"input"},
             {title:"Megj. kód", field:"COMMENTCODE", headerFilter:"input"},
-            {title:"VCSSZ-ben?", field:"INVCSSZ", headerFilter:"input", formatter:"tickCross"},
+            {title:"VCSSZ?", field:"INVCSSZ", headerFilter:"input", formatter:"tickCross"},
         ]
     });
 
@@ -185,7 +192,7 @@ function compareData() {
         el.innerHTML = rows.length;
     });
 
-    
+    document.querySelectorAll(".d-none").forEach(el => el.classList.remove("d-none"))
 
     btn_compare.removeAttribute("disabled")
 }
@@ -204,4 +211,4 @@ function reset() {
 
     btn_compare.setAttribute("disabled", "true")
 }
-btn_reset.addEventListener("click", reset)
+//btn_reset.addEventListener("click", reset)
