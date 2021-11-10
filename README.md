@@ -4,7 +4,8 @@ This tool is for Hungarian visual variable star observers so rest of the page (a
 
 Ez a webes eszköz a VCSSZ és az AAVSO adatbázisának összehasonlítására készült, csak vizuális észlelésekre fókuszálva. A differenciák alapján listákat generál, amik letölthető AAVSO vizuális formátumában, file-ként.
 
-Az oldal [itt](https://baeigner.github.io/vcssz-aavso-comparer/) érhető el. 
+Az oldal <a href="https://baeigner.github.io/vcssz-aavso-comparer/" target="_blank"> itt </a> érhető el. 
+
 
 ## Használata
 1. Észlelési listák letöltése. A nyitóldalon, a két megjelenő blokkban, a file kiválasztó alatt elérhető link mindkét oldal ezen funkciójához. 
