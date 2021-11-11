@@ -208,6 +208,7 @@ function getSendListTablulator(container, data, db) {
                     onRendered(function() { new bootstrap.Tooltip(cell.getElement().querySelector('button'),  {delay: { "show": 500, "hide": 100 }}) })  
                     return `<button class="btn btn-xs btn-danger addDeleteBtn" data-bs-toggle="tooltip" data-bs-placement="right" title="Eltávolítás az elküldendő listáról"> - </button>`
                 },  width:40,  cellClick:function(e, cell){
+                bootstrap.Tooltip.getInstance(e.target).dispose()
                 cell.getRow().delete();
             }},
         ]
