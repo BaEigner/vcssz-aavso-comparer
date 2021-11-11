@@ -24,6 +24,20 @@ var obscode_aavso = ""; // ovserver code in the AAVSO DB - filled when obs list 
  */
 const regexp = /^(V)(\d{3,4})/g; 
 
+const commentcodes = {
+    "B": "fényes égbolt, Hold, hajnal, stb",
+    "U": "felhők, köd, stb",
+    "W": "nagyon gyenge nyugodtság",
+    "L": "a változó közel volt a horizonthoz, fákhoz vagy egyéb terepakadályhoz",
+    "D": "szokatlan tevékenység: elhalványulás, felfényesedés, stb",
+    "Y": "kitörés",
+    "K": "nem AAVSO-térkép",
+    "S": "probléma az összehasonlítás közben",
+    "Z": "bizonytalan a becsült fényesség",
+    "I": "bizonytalan a csillag beazonosítása",
+    "V": "nagyon halvány csillag, közel a határmagnitúdóhoz, csak héha lehetett megpillantani"
+}
+
 /**
  * Event handler for observation list file input.
  * Parses an AAVSO visual format export file from VCSSZ database
@@ -50,8 +64,8 @@ function processVCSSZ() {
                     JD_ORIG: cols[1],
                     MAG: cols[2], 
                     COMMENTCODE: cols[3] == "na" ? "" : cols[3],
-                    COMP1: cols[4] == "na" ? "" : parseInt(cols[4]),
-                    COMP2: cols[5] == "na" ? "" : parseInt(cols[5]),
+                    COMP1: cols[4] == "na" ? "" : (parseInt(cols[4]) == parseFloat(cols[4]) ? parseInt(cols[4]) : parseInt(parseFloat(cols[4])*10) ),
+                    COMP2: cols[5] == "na" ? "" : (parseInt(cols[5]) == parseFloat(cols[5]) ? parseInt(cols[5]) : parseInt(parseFloat(cols[5])*10) ),
                     MAP: cols[6],
                     COMMENT: cols[7],
                     INOTHER: false
@@ -114,8 +128,8 @@ function processAAVSO() {
                     JD_ORIG: cols[3],
                     MAG: (cols[4] == "1" ? "<" : "") + cols[5], 
                     COMMENTCODE: cols[6],
-                    COMP1: cols[10] == "" ? "" : parseInt(cols[10]),
-                    COMP2: cols[12] == "" ? "" : parseInt(cols[12]),
+                    COMP1: cols[10] == "" ? "" : (parseInt(cols[10]) == parseFloat(cols[10]) ? parseInt(cols[10]) : parseInt(parseFloat(cols[10])*10) ), // if the value is a float then multiply by 10, use the value otherwise
+                    COMP2: cols[12] == "" ? "" : (parseInt(cols[12]) == parseFloat(cols[12]) ? parseInt(cols[12]) : parseInt(parseFloat(cols[12])*10) ), // if the value is a float then multiply by 10, use the value otherwise
                     MAP: cols[14],
                     COMMENT: "na",
                     INOTHER: false
@@ -134,6 +148,24 @@ function processAAVSO() {
     }
 }
 in_file_aavso.addEventListener("change", processAAVSO)
+
+
+function commCodeFormatter(cell, formatterParams, onRendered ) {
+    onRendered(function() { 
+    if(cell.getValue() != "") { 
+        new bootstrap.Tooltip(
+            cell.getElement(),  
+            {
+                delay: { "show": 500, "hide": 100 },
+                html: true, 
+                placement: "right",
+                title: cell.getValue().replaceAll(" ","").replaceAll(",","").split("").map(c => '<p class="mb-0"><b>' + c + '</b>: ' + commentcodes[c] + '</p>' ).join("")
+            }
+        )
+        }
+    })  
+    return cell.getValue()
+}
 
 /**
  * Creates a table from list of parsed observations
@@ -155,12 +187,13 @@ function getObsListTablulator(container, data, db) {
             {title:"ÖH1", field:"COMP1", headerFilter:"input", width: 65},
             {title:"ÖH2", field:"COMP2", headerFilter:"input", width: 65},
             {title:"Térkép", field:"MAP", headerFilter:"input"},
-            {title:"Megj. kód", field:"COMMENTCODE", headerFilter:"input", width: 70},
+            {title:"Megj. kód", field:"COMMENTCODE", headerFilter:"input", width: 70, formatter: commCodeFormatter},
             {title: db == "vcssz" ? "AAVSO?" : "VCSSZ?", field: "INOTHER", headerFilter:"input", formatter:"tickCross", width: 70}, 
             {title:"Hozzáadás", 
                 formatter:(cell, formatterParams, onRendered )=> {
                     onRendered(function() { new bootstrap.Tooltip(cell.getElement().querySelector('button'),  {delay: { "show": 500, "hide": 100 }}) })  
                     return `<button class="btn btn-xs btn-success addDeleteBtn" data-bs-toggle="tooltip" data-bs-placement="right" title="Hozzáadás az elküldendő listához"> + </button>`
+                    
                 }, 
                 width:40, cellClick:function(e, cell){
                     (db == "vcssz" ? table_to_aavso : table_to_vcssz).addRow( cell.getRow().getData() );
@@ -201,8 +234,7 @@ function getSendListTablulator(container, data, db) {
             {title:"ÖH1", field:"COMP1", headerFilter:"input", width: 70},
             {title:"ÖH2", field:"COMP2", headerFilter:"input", width: 70},
             {title:"Térkép", field:"MAP", headerFilter:"input"},
-            {title:"Megj. kód", field:"COMMENTCODE", headerFilter:"input"},
-            //{title: db == "vcssz" ? "AAVSO?" : "VCSSZ?", field: "INOTHER", headerFilter:"input", formatter:"tickCross"},
+            {title:"Megj. kód", field:"COMMENTCODE", headerFilter:"input", formatter: commCodeFormatter},
             {title:"Törlés", 
                 formatter:(cell, formatterParams, onRendered )=> {
                     onRendered(function() { new bootstrap.Tooltip(cell.getElement().querySelector('button'),  {delay: { "show": 500, "hide": 100 }}) })  
