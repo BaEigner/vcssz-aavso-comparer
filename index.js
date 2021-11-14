@@ -11,7 +11,6 @@ const btn_reset = document.getElementById("btn_reset")
 
 const aavso_duplicates = document.getElementById("aavso_duplicates")
 
-
 var dataVCSSZ = [] // data loaded from observation list - VCSSZ
 var dataAAVSO = [] // data loaded from observation list - AAVSO
 var dataToVCSSZ = [] // initial list of observations to be sent to VCSSZ - loaded after obs list comparison
@@ -114,6 +113,7 @@ function pad (str, max) {
     return str.length < max ? pad("0" + str, max) : str;
 }
 
+
 /**
  * Event handler for observation list file input.
  * Parses an export from AAVSO WebObs / Downnload my observations function
@@ -138,6 +138,7 @@ function processAAVSO() {
                     star = star.replace(star_orig, new_star)
                 }
                 ID += 1;
+                // duplicate detection
                 if(ID>0) {
                     if(dataLines[i-1] == dataLines[i]) {
                         duplicate = true
@@ -176,7 +177,9 @@ function processAAVSO() {
 }
 in_file_aavso.addEventListener("change", processAAVSO)
 
-
+/**
+ * Formats a comment code field of the tables to show tooltip with human readable version of the comment codes
+ */
 function commCodeFormatter(cell, formatterParams, onRendered ) {
     onRendered(function() { 
     if(cell.getValue() != "") { 
@@ -193,6 +196,7 @@ function commCodeFormatter(cell, formatterParams, onRendered ) {
     })  
     return cell.getValue()
 }
+
 
 /**
  * Creates a table from list of parsed observations
@@ -245,6 +249,7 @@ function getObsListTablulator(container, data, db) {
 
     return tbl
 }
+
 
 /**
  * Creates a table from list of to be sent observations
@@ -344,12 +349,15 @@ function compareData() {
     }
 
     btn_compare.removeAttribute("disabled")
-    document.getElementById("firstrow").classList.add("d-none")
-
-    
+    document.getElementById("firstrow").classList.add("d-none")    
 }
 btn_compare.addEventListener("click", compareData)
 
+
+/**
+ * Generates AAVSO visual format from a to be exported table and downloads it as filex.
+ * @param {string} toDB To which DB the records will be sent: vcssz or aavso
+ */
 function downloadSendList(toDB) {
     dataToSend = []
     var list = [
@@ -392,10 +400,10 @@ function downloadSendList(toDB) {
   
     document.body.removeChild(element);
 }
-
 document.getElementById("btn_download_list_to_aavso").addEventListener("click", () => { downloadSendList("aavso") })
 document.getElementById("btn_download_list_to_vcssz").addEventListener("click", () => { downloadSendList("vcssz") })
 
+// light/dark theme toggler
 document.getElementById("btn_toggle_theme").addEventListener("click", (e)=>{
     let btn = e.target
     let currentTheme = btn.dataset.theme
