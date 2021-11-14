@@ -54,8 +54,15 @@
                 </div>
             </div>
         </div>
-        <div class="col-xl-4 col-5">
-                <button class="btn btn-primary d-inline h-100 col-4 d-none" id="btn_compare" > Listák összehasonlítása </button>
+        <div class="col-xl-4 col-5 row d-none" id="submitdiv">
+            <div class="col-4">
+                <label for="in_JD_tolerance" class="form-label">JD tűréshatár <small>(/10000)</small></label>
+                <input type="number" class="form-control" id="in_JD_tolerance" aria-describedby="JD_tolerance_desc" value=10 min=0 max=9999>
+                <div id="JD_tolerance_desc" class="form-text">JD.001, 86 mp</div>
+            </div>
+            <div class="col-1"></div>
+            <button class="btn btn-primary d-inline h-100 col-4" id="btn_compare" > Listák összehasonlítása </button>
+            
         </div>
     </div>
     <div class="row mt-2">
@@ -103,6 +110,7 @@
                     
                     <h5 class="card-title">VCSSZ-nek küldendő észlelések <small id="observations_to_vcssz_num"></small></h5>
                     <p class="card-text mt-2" id="observations_to_vcssz" style="font-size:0.8rem;"></p>
+                    <p class="card-text border-warning ps-2 d-none" id="aavso_duplicates">Duplicates found in AAVSO list: </p>
                     <button class="btn btn-primary" id="btn_download_list_to_vcssz"> <i class="bi bi-file-earmark-arrow-down"></i> VCSSZ-nek küldendő lista letöltése </button>
                     
                     <div class="ps-2 border-warning">

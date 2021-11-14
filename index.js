@@ -1,5 +1,6 @@
 const in_file_vcssz = document.getElementById("file_vcssz")
 const in_file_aavso = document.getElementById("file_aavso")
+const in_JD_tolerance = document.getElementById("in_JD_tolerance")
 
 const [file_aavso] = in_file_aavso.files 
 const content_vcssz = document.getElementById("content_vcssz")
@@ -7,6 +8,9 @@ const content_aavso = document.getElementById("content_aavso")
 
 const btn_compare = document.getElementById("btn_compare")
 const btn_reset = document.getElementById("btn_reset")
+
+const aavso_duplicates = document.getElementById("aavso_duplicates")
+
 
 var dataVCSSZ = [] // data loaded from observation list - VCSSZ
 var dataAAVSO = [] // data loaded from observation list - AAVSO
@@ -16,8 +20,16 @@ var dataToAAVSO = [] // initial list of observations to be sent to AAVSO - loade
 var table_to_aavso // used to reference to Tabulator object later, holding data to be sent to AAVSO
 var table_to_vcssz // used to reference to Tabulator object later, holding data to be sent to VCSSZ
 
-var obscode_vcssz = ""; // ovserver code in the VCSSZ DB - filled when obs list loaded
-var obscode_aavso = ""; // ovserver code in the AAVSO DB - filled when obs list loaded
+var obscode_vcssz = "" // ovserver code in the VCSSZ DB - filled when obs list loaded
+var obscode_aavso = "" // ovserver code in the AAVSO DB - filled when obs list loaded
+
+var aavso_dplucated_obs = [] // list of duplicated AAVSO observations (IDs)
+
+var JDTolerance = 0.001
+in_JD_tolerance.addEventListener("change", () => {
+    JDTolerance = in_JD_tolerance.value / 10000
+    document.getElementById("JD_tolerance_desc").innerHTML= "JD." + JDTolerance + ", " + (86400 * JDTolerance).toFixed(0) + "mp"
+})
 
 /**
  * Identify Vxxxx ZZZ type variable names by matching strings starting with V and 3-4 digits
@@ -38,6 +50,9 @@ const commentcodes = {
     "V": "nagyon halvány csillag, közel a határmagnitúdóhoz, csak héha lehetett megpillantani"
 }
 
+// sorter function: first by JD, then star name
+const observationSorter = (a,b)=> (a.JD - b.JD || a.STAR.localeCompare(b.STAR)  )
+
 /**
  * Event handler for observation list file input.
  * Parses an AAVSO visual format export file from VCSSZ database
@@ -48,7 +63,7 @@ function processVCSSZ() {
     reader.addEventListener("load", () => {
         dataVCSSZ = []
         let dataLines = reader.result.split("\n")
-        var ID = -1;
+        var ID = 0;
         dataLines.forEach(l => {
             if (l.indexOf("#OBSCODE=") > -1) {
                 obscode_vcssz = l.split("=")[1]
@@ -72,10 +87,11 @@ function processVCSSZ() {
                 })
             }
         })
+        dataVCSSZ.sort(observationSorter)
         content_vcssz.innerHTML = " - " + dataVCSSZ.length + " észlelés betöltve"
 
         if(dataAAVSO.length > 0 && dataVCSSZ.length > 0) {
-            btn_compare.classList.remove("d-none")
+            btn_compare.parentElement.classList.remove("d-none")
         }
     }, false);
 
@@ -108,19 +124,28 @@ function processAAVSO() {
     reader.addEventListener("load", () => {
         dataAAVSO = []
         let dataLines = reader.result.split("\n")
-        var ID = -1;
+        var ID = 0;
         obscode_aavso = in_file_aavso.value.substring(in_file_aavso.value.lastIndexOf("_") + 1).replace(".txt", "")
         document.getElementById("obscode_aavso").innerText = obscode_aavso
-        dataLines.forEach(l => {
+        dataLines.forEach((l,i) => {
             if (l.indexOf("Vis") == 0) {
                 let cols = l.split(" ## ")
                 let star = cols[1]
+                let duplicate = false
                 if(regexp.test(cols[1])) {
                     let star_orig = cols[1].match(regexp)[0]
                     let new_star = "V" + pad(star_orig.replace("V","") ,4)
                     star = star.replace(star_orig, new_star)
                 }
                 ID += 1;
+                if(ID>0) {
+                    if(dataLines[i-1] == dataLines[i]) {
+                        duplicate = true
+                        console.log(i,dataAAVSO.length)
+                        dataAAVSO[i-3].DUPLICATE = true // new record not added yet, thus i and not i-1
+                        aavso_dplucated_obs.push(...[ID-1, ID])
+                    }
+                }
                 dataAAVSO.push({
                     ID: ID,
                     STAR: star ,
@@ -132,14 +157,16 @@ function processAAVSO() {
                     COMP2: cols[12] == "" ? "" : (parseInt(cols[12]) == parseFloat(cols[12]) ? parseInt(cols[12]) : parseInt(parseFloat(cols[12])*10) ), // if the value is a float then multiply by 10, use the value otherwise
                     MAP: cols[14],
                     COMMENT: "na",
-                    INOTHER: false
+                    INOTHER: false,
+                    DUPLICATE: duplicate
                 })
             }
         })
-        content_aavso.innerHTML = " - " + dataAAVSO.length + " észlelés betöltve"
+        dataAAVSO.sort(observationSorter)
+        content_aavso.innerHTML = " - " + dataAAVSO.length + " észlelés betöltve" + (aavso_dplucated_obs.length > 0 ? (", " + aavso_dplucated_obs.length / 2 + " duplikáció!") : "")
 
         if(dataAAVSO.length > 0 && dataVCSSZ.length > 0) {
-            btn_compare.classList.remove("d-none")
+            btn_compare.parentElement.classList.remove("d-none")
         }
     }, false);
 
@@ -199,7 +226,12 @@ function getObsListTablulator(container, data, db) {
                     (db == "vcssz" ? table_to_aavso : table_to_vcssz).addRow( cell.getRow().getData() );
                 }
             },
-        ]
+        ],
+        rowFormatter:function(row){
+            if(row.getData().DUPLICATE){
+                row.getElement().style.backgroundColor = "#d67200"; //apply css change to row element
+            }
+        }
     });
 
     tbl.on("dataLoaded", function(data){
@@ -261,28 +293,38 @@ function getSendListTablulator(container, data, db) {
 
 function compareData() {   
     btn_compare.setAttribute("disabled", "disabled")
+    
     dataToAAVSO = []
     dataToVCSSZ = []
 
-    dataVCSSZ.forEach(v => {
-        dataAAVSO.every(a => {
-            if(a.JD == v.JD && (a.STAR == v.STAR || a.STAR.replaceAll(" ", "") == v.STAR)) {
-                v.INOTHER = true
-                return false
+    var start = new Date()
+    var IDFrom = 0;
+    dataVCSSZ.forEach((v,j) => {
+        for(let i = IDFrom; i < dataAAVSO.length; i++) {
+            if (dataAAVSO[i].STAR == v.STAR || dataAAVSO[i].STAR.replaceAll(" ", "") == v.STAR) {
+                if(Math.abs(dataAAVSO[i].JD - v.JD) <= JDTolerance) {
+                    v.INOTHER = true
+                    IDFrom = i 
+                    break
+                }
             }
-            return true
-        })
+        }
     })
 
+    IDFrom = 0
     dataAAVSO.forEach(a => {
-        dataVCSSZ.every(v => {
-            if(a.JD == v.JD && (a.STAR == v.STAR || a.STAR.replaceAll(" ", "") == v.STAR)) {
-                a.INOTHER = true
-                return false
+        for(let i = IDFrom; i < dataVCSSZ.length; i++) {
+            if (a.STAR == dataVCSSZ[i].STAR || a.STAR.replaceAll(" ", "") == dataVCSSZ[i].STAR) {
+                if(Math.abs(a.JD - dataVCSSZ[i].JD) <= JDTolerance) {
+                    a.INOTHER = true
+                    IDFrom = i
+                    break
+                }
             }
-            return true
-        })
+        }
     })
+
+    console.log("process time:", (new Date()) - start)
 
     dataToAAVSO = dataVCSSZ.filter(r => r.INOTHER == false)
     dataToVCSSZ = dataAAVSO.filter(r => r.INOTHER == false)
@@ -295,8 +337,16 @@ function compareData() {
 
     document.querySelectorAll(".d-none").forEach(el => el.classList.remove("d-none"))
 
+    if(aavso_dplucated_obs.length > 0) {
+        aavso_duplicates.innerHTML += aavso_dplucated_obs.map((id, i) => i%2 == 0 ? id + " - " + aavso_dplucated_obs[i+1]  : undefined).filter(id => id != undefined).join(", ")
+    } else {
+        aavso_duplicates.classList.add("d-none")
+    }
+
     btn_compare.removeAttribute("disabled")
     document.getElementById("firstrow").classList.add("d-none")
+
+    
 }
 btn_compare.addEventListener("click", compareData)
 
