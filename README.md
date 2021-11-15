@@ -33,6 +33,7 @@ Az oldal [itt](https://baeigner.github.io/vcssz-aavso-comparer/) érhető el.
 * Amennyiben nem talál egyezért a rendszer, érdemes kézzel átfésülni a találatokat, tehát pl. a bal alul listázott, AAVSO-ban nem, de VCSSZ-ben megtalált észleléseket kézzel megpróbálni megkeresni a jobb felső, AAVSO-ból betöltött táblázatban (pl. pontos JD alapján)
 * A jobb felső sarokban szereplő Nap/Hold ikonnal váltani lehet a sötét és világos színvilág között. 
 * 1400px szélességnél kisebb felbontás (vagy ablak méret) esetén a táblázatok egymás alá kerülnek, az oldal átláthatósága romlik. A fejlesztés 1920px szélességen történt, erre lett optimalizálva. Mobilra nincs optimalizálva egyáltalán.
+* A megyjegyzés kód mezőnél, ha ki van töltve, akkor az egeret fölé víve megjelenik annak az "emberi" változata
 * Az adatok nem kerülnek feltöltésre sehova, a feldolozás teljesen a böngészőben történik. 
 * Az összehasonlításban lehetnek hibák, érdemes a listákat minden esetben ellenőrizni. 
 * A letöltött listákat érdemes betöltés előtt ellenőrizni. Az AAVSO esetén ez automatikus, hisz a WebObs rákérdez, a VCSSZ esetén éljünk a teszt gomb nyújtotta biztonság lehetőségével.
