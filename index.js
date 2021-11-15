@@ -259,41 +259,48 @@ function getObsListTablulator(container, data, db) {
  * @returns 
  */
 function getSendListTablulator(container, data, db) {
-    var tbl = new Tabulator("#" + container, {
-        data: data, //assign data to table
-        height:"338px",
-        layout:"fitColumns",
-        columns: [
-            {title:"#", field:"ID", width: 40},
-            {title:"Csillag", field:"STAR", headerFilter:"input", width: 200},
-            {title:"JD", field:"JD", headerFilter:"input", width:110},
-            {title:"Fényesség", field:"MAG", headerFilter:"input", width: 70},
-            {title:"ÖH1", field:"COMP1", headerFilter:"input", width: 70},
-            {title:"ÖH2", field:"COMP2", headerFilter:"input", width: 70},
-            {title:"Térkép", field:"MAP", headerFilter:"input"},
-            {title:"Megj. kód", field:"COMMENTCODE", headerFilter:"input", formatter: commCodeFormatter},
-            {title:"Törlés", 
-                formatter:(cell, formatterParams, onRendered )=> {
-                    onRendered(function() { new bootstrap.Tooltip(cell.getElement().querySelector('button'),  {delay: { "show": 500, "hide": 100 }}) })  
-                    return `<button class="btn btn-xs btn-danger addDeleteBtn" data-bs-toggle="tooltip" data-bs-placement="right" title="Eltávolítás az elküldendő listáról"> - </button>`
-                },  width:40,  cellClick:function(e, cell){
-                bootstrap.Tooltip.getInstance(e.target).dispose()
-                cell.getRow().delete();
-            }},
-        ]
-    });
+    if(data.length > 0) {
+        var tbl = new Tabulator("#" + container, {
+            data: data, //assign data to table
+            height:"338px",
+            layout:"fitColumns",
+            columns: [
+                {title:"#", field:"ID", width: 40},
+                {title:"Csillag", field:"STAR", headerFilter:"input", width: 200},
+                {title:"JD", field:"JD", headerFilter:"input", width:110},
+                {title:"Fényesség", field:"MAG", headerFilter:"input", width: 70},
+                {title:"ÖH1", field:"COMP1", headerFilter:"input", width: 70},
+                {title:"ÖH2", field:"COMP2", headerFilter:"input", width: 70},
+                {title:"Térkép", field:"MAP", headerFilter:"input"},
+                {title:"Megj. kód", field:"COMMENTCODE", headerFilter:"input", formatter: commCodeFormatter},
+                {title:"Törlés", 
+                    formatter:(cell, formatterParams, onRendered )=> {
+                        onRendered(function() { new bootstrap.Tooltip(cell.getElement().querySelector('button'),  {delay: { "show": 500, "hide": 100 }}) })  
+                        return `<button class="btn btn-xs btn-danger addDeleteBtn" data-bs-toggle="tooltip" data-bs-placement="right" title="Eltávolítás az elküldendő listáról"> - </button>`
+                    },  width:40,  cellClick:function(e, cell){
+                    bootstrap.Tooltip.getInstance(e.target).dispose()
+                    cell.getRow().delete();
+                }},
+            ]
+        });
 
-    tbl.on("dataLoaded", function(data){
-        document.getElementById("observations_to_" + (db == "vcssz" ? "aavso" : "vcssz") + "_num").innerHTML = "(" + data.length + ")"
-    });
-    tbl.on("rowAdded", function(){
-        document.getElementById("observations_to_" + (db == "vcssz" ? "aavso" : "vcssz") + "_num").innerHTML = "(" + tbl.getData().length + ")"
-    });
-    tbl.on("rowDeleted", function(){
-        document.getElementById("observations_to_" + (db == "vcssz" ? "aavso" : "vcssz") + "_num").innerHTML = "(" + tbl.getData().length + ")"
-    });
+        tbl.on("dataLoaded", function(data){
+            document.getElementById("observations_to_" + (db == "vcssz" ? "aavso" : "vcssz") + "_num").innerHTML = "(" + data.length + ")"
+        });
+        tbl.on("rowAdded", function(){
+            document.getElementById("observations_to_" + (db == "vcssz" ? "aavso" : "vcssz") + "_num").innerHTML = "(" + tbl.getData().length + ")"
+        });
+        tbl.on("rowDeleted", function(){
+            document.getElementById("observations_to_" + (db == "vcssz" ? "aavso" : "vcssz") + "_num").innerHTML = "(" + tbl.getData().length + ")"
+        });
 
-    return tbl
+        return tbl
+    } else {
+        document.getElementById(container).innerHTML = "Nincs hiányzó észlelés"
+        document.getElementById("btn_download_list_to_" + (db == "vcssz" ? "aavso" : "vcssz")).classList.add("invisible")
+        document.getElementById(db + "_warning").classList.add("invisible")
+        return undefined
+    }
 }
 
 function compareData() {   
@@ -340,7 +347,14 @@ function compareData() {
     table_to_aavso = getSendListTablulator("observations_to_aavso", dataToAAVSO, "vcssz")
     table_to_vcssz = getSendListTablulator("observations_to_vcssz", dataToVCSSZ, "aavso")
 
+    if(table_to_aavso === undefined) {
+        document.getElementById("btn_download_list_to_aavso").classList.add("d-none")
+        document.getElementById("btn_download_list_to_vcssz").classList.add("d-none")
+        document.querySelectorAll(".border-warning").forEach(e => e.classList.add("d-none"))
+    }
+
     document.querySelectorAll(".d-none").forEach(el => el.classList.remove("d-none"))
+    document.querySelectorAll(".invisible").forEach(el => el.classList.add("d-none"))
 
     if(aavso_dplucated_obs.length > 0) {
         aavso_duplicates.innerHTML += aavso_dplucated_obs.map((id, i) => i%2 == 0 ? id + " - " + aavso_dplucated_obs[i+1]  : undefined).filter(id => id != undefined).join(", ")
