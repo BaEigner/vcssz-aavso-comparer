@@ -8,7 +8,7 @@ Az oldal [itt](https://baeigner.github.io/vcssz-aavso-comparer/) érhető el.
 
 
 ## Használata
-1. Észlelési listák letöltése a VCSSZ és AAVSO adatbázisaiból. A nyitóldalon, a két megjelenő blokkban, a file kiválasztó alatt elérhető link mindkét oldal ezen funkciójához. 
+1. Észlelési listák letöltése a VCSSZ és AAVSO adatbázisaiból. A nyitóldalon, a két megjelenő blokkban, a file kiválasztó alatt elérhető link mindkét oldal ezen funkciójához. Csak egy észlelő adatait használjuk, csak időreszűrve letöltésnél (AAVSO esetén egyértelmű, VCSSZ-nél érdemesa "Saját észlelések" menüpont alatt szűrni az időablakra és úgy letölteni.)
 2. Az észlelési listák betöltése: mindkettő file választó csak a megfelelő formátumú file-t engedi kiválasztani (VCSSZ esetében .aavso, AAVSO esetén .txt).     
     - Megnyitás után a rendszer először JD, majd azon belül a csillag neve alapján sorrendbe rendezi a rendszer
     - Feldolgozás után a fejlécben jelzi a betöltött észlelések számát, illetve AAVSO esetén a talált duplikációk számosságát is, ha volt ilyen
