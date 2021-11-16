@@ -2,7 +2,7 @@
 
 This tool is for Hungarian visual variable star observers so rest of the page (and the tool itself) will be in Hungarian. It compares data from the VCSSZ database (Hungarian variable star observer group of the Hungarian Astronomical Association (MCSE)) and the AAVSO database and generates difference lists downloadable in AAVSO visual format. 
 
-Ez a webes eszköz a VCSSZ és az AAVSO adatbázisának összehasonlítására készült, csak a vizuális észlelésekre fókuszálva. A differenciák alapján listákat generál, amik letölthetők [AAVSO vizuális formátumában](https://www.aavso.org/aavso-visual-file-format), file-ként.
+Ez a webes eszköz a VCSSZ és az AAVSO adatbázisának összehasonlítására készült, csak a vizuális észlelésekre fókuszálva. A differenciák alapján listákat generál, amik letölthetők [AAVSO vizuális formátumában](https://www.aavso.org/aavso-visual-file-format), file-ként. Egyszerre csak egy észlelő becsléseit tudja kezelni.
 
 Az oldal [itt](https://baeigner.github.io/vcssz-aavso-comparer/) érhető el. 
 
