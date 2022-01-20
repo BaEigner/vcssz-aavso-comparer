@@ -166,6 +166,8 @@ function processAAVSO() {
         dataAAVSO.sort(observationSorter)
         content_aavso.innerHTML = " - " + dataAAVSO.length + " észlelés betöltve" + (aavso_dplucated_obs.length > 0 ? (", " + aavso_dplucated_obs.length / 2 + " duplikáció!") : "")
 
+        document.getElementById("btn_dl_aavso_raw").classList.remove("d-none");
+
         if(dataAAVSO.length > 0 && dataVCSSZ.length > 0) {
             btn_compare.parentElement.classList.remove("d-none")
         }
@@ -372,7 +374,7 @@ btn_compare.addEventListener("click", compareData)
  * Generates AAVSO visual format from a to be exported table and downloads it as filex.
  * @param {string} toDB To which DB the records will be sent: vcssz or aavso
  */
-function downloadSendList(toDB) {
+function downloadSendList(toDB,justExport) {
     dataToSend = []
     var list = [
         "#TYPE=VISUAL",
@@ -382,7 +384,7 @@ function downloadSendList(toDB) {
         "#DATE=JD",
         "#NAME,DATE,MAG,COMMENTCODE,COMP1,COMP2,CHART,NOTES"
     ]
-    var data = (toDB == "vcssz" ? table_to_vcssz : table_to_aavso).getData()
+    var data = justExport ? (justExport == 'aavso' ? dataAAVSO : dataVCSSZ) : (toDB == "vcssz" ? table_to_vcssz : table_to_aavso).getData()
     console.log(data)
     data.forEach(obs => {
         list.push(
@@ -416,6 +418,7 @@ function downloadSendList(toDB) {
 }
 document.getElementById("btn_download_list_to_aavso").addEventListener("click", () => { downloadSendList("aavso") })
 document.getElementById("btn_download_list_to_vcssz").addEventListener("click", () => { downloadSendList("vcssz") })
+document.getElementById("btn_dl_aavso_raw").addEventListener("click", () => { downloadSendList("vcssz", "aavso") })
 
 // light/dark theme toggler
 document.getElementById("btn_toggle_theme").addEventListener("click", (e)=>{
